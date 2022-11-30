@@ -7,6 +7,12 @@ from struct import pack
 import random
 import time
 
+RPI_IP_ADDRESS='192.168.178.112'
+VIDEO_RESOLUTION_H=720
+VIDEO_RESOLUTION_W=1280
+VIDEO_SOURCE="covos.mp4"
+
+
 # Ball color in HSV
 yellowLower = (25, 90, 10)
 yellowUpper = (64, 255, 255)
@@ -188,16 +194,18 @@ def which_guard(defense_couple):
         return 1
    
 
-def print_five_mid(frame,mid_pos,goal_pos,h):
+def print_five_mid(frame,mid_pos,goal_pos,def_pos,guard,h):
     #5 mid bars
-    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*0), 0), (int(left_end+mid_pos*(field/90)+(field/5)*0), int(h)), (255, 255, 255), 2)
-    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*1), 0), (int(left_end+mid_pos*(field/90)+(field/5)*1), int(h)), (255, 255, 255), 2)
-    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*2), 0), (int(left_end+mid_pos*(field/90)+(field/5)*2), int(h)), (255, 255, 255), 2)
-    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*3), 0), (int(left_end+mid_pos*(field/90)+(field/5)*3), int(h)), (255, 255, 255), 2)
-    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*4), 0), (int(left_end+mid_pos*(field/90)+(field/5)*4), int(h)), (255, 255, 255), 2)
+    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*0), int(h/3)), (int(left_end+mid_pos*(field/90)+(field/5)*0), int(2*h/3)), (255, 255, 255), 2)
+    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*1), int(h/3)), (int(left_end+mid_pos*(field/90)+(field/5)*1), int(2*h/3)), (255, 255, 255), 2)
+    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*2), int(h/3)), (int(left_end+mid_pos*(field/90)+(field/5)*2), int(2*h/3)), (255, 255, 255), 2)
+    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*3), int(h/3)), (int(left_end+mid_pos*(field/90)+(field/5)*3), int(2*h/3)), (255, 255, 255), 2)
+    cv2.line(frame, (int(left_end+mid_pos*(field/90)+(field/5)*4), int(h/3)), (int(left_end+mid_pos*(field/90)+(field/5)*4), int(2*h/3)), (255, 255, 255), 2)
     #1 goal bar
-    print(goal_pos)
-    cv2.line(frame, (int(left_end+goal_pos*((field-0.72*field)/5)+0.36*field), 0), (int(left_end+goal_pos*((field-0.72*field)/5)+0.36*field), int(h/2)), (255, 255, 0), 2)
+    cv2.line(frame, (int(left_end+goal_pos*((field-0.76*field)/5)+0.38*field), 0), (int(left_end+goal_pos*((field-0.76*field)/5)+0.38*field), int(h/6)), (255, 255, 0), 2)
+    #2 def bars
+    cv2.line(frame, (int(left_end+def_pos*((field-0.76*field)/5)), int(h/5)), (int(left_end+def_pos*((field-0.76*field)/5)), int(h/4)), (0, 255, 255), 2)
+    cv2.line(frame, (int(left_end+def_pos*((field-0.76*field)/5)+0.37*field), int(h/5)), (int(left_end+def_pos*((field-0.76*field)/5)+0.37*field), int(h/4)), (0, 255, 255), 2)
 
 
 
@@ -208,7 +216,7 @@ def def_bar(field, ball_x, img,height,left_end,prev_goal_pos,prev_def_pos,prev_g
     precision=18
     if field==0 or precision==0:
         return (1,1),(1,1)
-    ball_position=ball_x-left_end
+    ball_position=ball_x
     left_goal_corner=left_end+(field*0.36)
     right_goal_corner=left_end+field-(field*0.36)
     if ball_position<left_goal_corner:
@@ -223,7 +231,7 @@ def def_bar(field, ball_x, img,height,left_end,prev_goal_pos,prev_def_pos,prev_g
     goal_section=goal_length/5
     ball_sector=int((ball_position-left_goal_corner)//goal_section)+1
     if ball_sector==prev_ball_sector:
-        if random.randint(0,1) == 0:
+        if random.randint(0,5) != 0:
             return (prev_goal_pos,prev_def_pos),(prev_guard,prev_ball_sector)
     defense_couple=ball_position_to_couple(ball_sector)
     guard=which_guard(defense_couple)
@@ -358,7 +366,7 @@ def refresh():
     cv2.line(frame, (left_end, 0), (left_end, int(ch)), (0, 0, 0), 2)
     cv2.line(frame, (left_end+field, 0), (left_end+field, int(ch)), (0, 0, 0), 2)
     try: 
-        print_five_mid(frame,mid_pos,goal_pos,ch)
+        print_five_mid(frame,mid_pos,goal_pos,def_pos,guard,ch)
         #time.sleep(0.2)
 
     except :
