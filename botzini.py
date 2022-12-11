@@ -10,7 +10,7 @@ import time
 RPI_IP_ADDRESS='192.168.178.112'
 VIDEO_RESOLUTION_H=720
 VIDEO_RESOLUTION_W=1280
-VIDEO_SOURCE="covos.mp4"
+VIDEO_SOURCE="vidal.mp4"
 
 
 # Ball color in HSV
@@ -19,7 +19,7 @@ yellowUpper = (64, 255, 255)
 
 # Create a UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-host, port = '192.168.178.112', 65000
+host, port = RPI_IP_ADDRESS, 65000
 server_address = (host, port)
 
 
@@ -161,6 +161,10 @@ def is_red(data):
     if data[2] > 200 and data[1] < 150 and data[0] < 150 :
         return True
 
+def is_green(data):
+    if data[2] < data[0]-10 and data[0] < data[1]:
+        return True
+
 # Retourne le couple (goal,défenseur) selon le placement de la balle
 def ball_position_to_couple(ball_sector):
     if ball_sector == 1:
@@ -260,6 +264,12 @@ def get_field(img):
             i-=1
         else:
             break
+    while not(is_green(data)):
+        data = img[median_height,i]
+        if i<width-1:
+            i+=1
+        else:
+            break
     le=i
     i=median_width
     data = img[median_height,i]
@@ -269,9 +279,16 @@ def get_field(img):
             i+=1
         else:
             break
+    while not(is_green(data)):
+        data = img[median_height,i]
+        if i>0:
+            i-=1
+        else:
+            break
     rb=i
     field=rb-le
-    return int(field-0.1*field),int(le+0.05*field)
+    return field,le
+    #return int(field-0.1*field),int(le+0.05*field)
 
 #Placement de base du servomoteur
 previous=1
@@ -284,7 +301,7 @@ lmain = tk.Label(root)
 lmain.grid()
 
 # Initialize the camera with index 0 or 1
-cap = cv2.VideoCapture("covos.mp4")
+cap = cv2.VideoCapture(VIDEO_SOURCE)
 # Check that we have camera access
 # This check is not included in all further examples
 if not cap.isOpened():
@@ -292,8 +309,8 @@ if not cap.isOpened():
     root.mainloop()
 else:
     # You can set the desired resolution here
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, VIDEO_RESOLUTION_W)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, VIDEO_RESOLUTION_H)
     ret,frame=cap.read()
     field,left_end=get_field(frame)
 
@@ -335,7 +352,7 @@ def refresh():
             sock.sendto(message, server_address)
 
         # To see the centroid clearly
-        if radius > 10:
+        if radius > 1:
             cv2.circle(frame, (int(left_end+x), int(y)), int(radius), (0, 255, 255), 5)
             cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
