@@ -10,6 +10,9 @@ Pydroid Premium if used on Android
 
 # Code variables
 RPI_IP_ADDRESS= Raspberry Pi IP address ('192.168.1.22')
+
 VIDEO_RESOLUTION_H= Video height resolution (720)
+
 VIDEO_RESOLUTION_W= Video width resolution (1280)
+
 VIDEO_SOURCE= Video source ("covos.mp4" or 0 (main camera) or 1 (seconday camera))
